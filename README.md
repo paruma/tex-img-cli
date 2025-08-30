@@ -1,10 +1,10 @@
 # teximg
 
-LaTeXの数式から高画質な透過PNG画像を生成するコマンドラインツールです。
+LaTeXの数式から透過PNG画像を生成するコマンドラインツールです。
 
 ## 概要
 
-`teximg.sh` は、LaTeX形式で書かれた数式を引数として受け取り、背景が透明なPNG画像を生成します。画像のサイズは、基準のフォントサイズに対するパーセンテージで直感的に指定できます。
+`teximg.sh` は、LaTeX形式で書かれた数式を引数として受け取り、背景が透明なPNG画像を生成します。画像のサイズは、基準のフォントサイズに対するパーセンテージで指定できます。
 
 ## 動作要件
 
@@ -32,7 +32,7 @@ sudo apt-get install texlive-latex-base imagemagick bc util-linux
 
 2.  パスの通ったディレクトリ（例: `/usr/local/bin`）に配置すると、どこからでも `teximg.sh` のようにコマンド名だけで実行できます。
 
-### **【重要】ImageMagickのセキュリティポリシー設定**
+### ImageMagickのセキュリティポリシー設定
 
 多くのLinuxディストリビューションでは、セキュリティ上の理由から、ImageMagickがPDFファイルを処理することがデフォルトで無効になっています。
 
@@ -74,7 +74,7 @@ Options:
   -h, --help          Display this help and exit
 
 Arguments:
-  formula             The LaTeX formula to render (e.g., "\\frac{a}{b}")
+  formula             The LaTeX formula to render (e.g., '\frac{a}{b}')
   scale               The scaling percentage (e.g., 100)
 ```
 
@@ -83,21 +83,21 @@ Arguments:
 **例1：基本的な使い方**
 
 ```bash
-./teximg.sh "a^2 + b^2 = c^2" 100
+./teximg.sh 'a^2 + b^2 = c^2' 100
 ```
 `output.png` という名前で、高さ48px相当の画像が生成されます。
 
 **例2：出力ファイルを指定**
 
 ```bash
-./teximg.sh -o pythagoras.png "a^2 + b^2 = c^2" 100
+./teximg.sh -o pythagoras.png 'a^2 + b^2 = c^2' 100
 ```
 `pythagoras.png` という名前で画像が生成されます。
 
-**例3：少し複雑な数式を大きめに生成**
+**例3：数式を大きめに生成**
 
 ```bash
-./teximg.sh --output gaussian.png "\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}" 250
+./teximg.sh --output gaussian.png '\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}' 250
 ```
 `gaussian.png` という名前で、高さが 48px * 2.5 = 120px 相当の画像が生成されます。
 
