@@ -109,7 +109,7 @@ echo "Generating LaTeX PDF..."
 pdflatex -interaction=nonstopmode -output-directory="$TMP_DIR" "$TEX_FILE" >/dev/null 2>&1
 
 echo "Converting PDF to PNG..."
-convert -density "$DENSITY" "$PDF_FILE" -resize "x$TARGET_HEIGHT" -transparent white "$OUTPUT_FILE"
+convert -density "$DENSITY" "$PDF_FILE" -resize "x$TARGET_HEIGHT" -transparent white -trim "$OUTPUT_FILE"
 
 echo ""
 echo "Success! Image saved as $OUTPUT_FILE"
