@@ -22,7 +22,7 @@ EOF
 }
 
 # --- Dependency Checks ---
-command -v pdflatex >/dev/null 2>&1 || { echo >&2 "Error: pdflatex is not installed. Please install a TeX distribution (like TeX Live)."; exit 1; }
+command -v lualatex >/dev/null 2>&1 || { echo >&2 "Error: lualatex is not installed. Please install a TeX distribution that includes it (like TeX Live)."; exit 1; }
 command -v convert >/dev/null 2>&1 || { echo >&2 "Error: convert (ImageMagick) is not installed. Please install ImageMagick."; exit 1; }
 command -v bc >/dev/null 2>&1 || { echo >&2 "Error: bc is not installed. Please install bc."; exit 1; }
 command -v getopt >/dev/null 2>&1 || { echo >&2 "Error: getopt is not installed. It's usually part of the 'util-linux' package."; exit 1; }
@@ -75,7 +75,7 @@ SCALE=$2
 
 
 # --- Constants ---
-BASELINE_HEIGHT=48 # px, this is our 100% reference height
+BASELINE_HEIGHT=480 # px, this is our 100% reference height
 DENSITY=600        # DPI for high-quality rendering
 
 # --- Calculation ---
@@ -92,19 +92,22 @@ PDF_FILE="$BASE_NAME.pdf"
 
 # --- LaTeX Generation ---
 cat > "$TEX_FILE" << EOF
-\documentclass[preview, border=2pt]{standalone}
+\documentclass{ltjarticle}
+\usepackage[active,tightpage]{preview} % Use preview package for cropping
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{xcolor}
 \begin{document}
+\begin{preview} % Start the preview environment
 {\color{black} \[$FORMULA\]}
+\end{preview} % End the preview environment
 \end{document}
 EOF
 
 # --- Compilation and Conversion ---
-echo "Generating LaTeX PDF..."
-pdflatex -interaction=nonstopmode -output-directory="$TMP_DIR" "$TEX_FILE" >/dev/null 2>&1
+echo "Generating LaTeX PDF (using lualatex)..."
+lualatex -interaction=nonstopmode -output-directory="$TMP_DIR" "$TEX_FILE"
 
 echo "Converting PDF to PNG..."
 
