@@ -13,6 +13,7 @@ LaTeXの数式から透過PNG画像を生成するコマンドラインツール
 *   **pdflatex**: TeXのディストリビューションに含まれています。（例: TeX Live）
 *   **ImageMagick**: PDFをPNGに変換するために使用します。
 *   **bc**: スケール計算のために使用する計算ツールです。
+
 *   **getopt**: コマンドラインオプションを解析するために使用します。（`util-linux` パッケージに含まれています）
 
 Debian/Ubuntu系のシステムでは、以下のコマンドでインストールできます。
@@ -65,47 +66,49 @@ sudo apt-get install texlive-latex-base imagemagick bc util-linux
 ## 使い方
 
 ```
-Usage: ./teximg.sh [options] <formula> <scale>
+Usage: ./teximg.sh [options] <formula>
 
 Generates a transparent PNG image from a LaTeX formula.
 
 Options:
-  -o, --output FILE   Set the output file name (default: output.png)
-  -t, --thickness VAL Set thickness for dilating the font (e.g., 1.0). Default: 0.
-  -h, --help          Display this help and exit
+      --output FILE   Set the output file name (default: output.png)
+      --thickness VAL Set thickness for dilating the font (e.g., 1.0). Default: 0.
+      --scale VAL     Set the scaling percentage (default: 100).
+      --help          Display this help and exit
 
 Arguments:
   formula             The LaTeX formula to render (e.g., '\frac{a}{b}')
-  scale               The scaling percentage (e.g., 100)
 ```
+
+## スケール基準について
+
+スケール(%)は、出力される画像の高さを基準にしています。`100%` を指定すると、画像の高さが **480ピクセル** になります。
+
+- `100%` → 高さ 480px
+- `50%` → 高さ 240px
+- `10%` → 高さ 48px
+
+幅は、数式の縦横比を維持して自動で調整されます。この基準値はスクリプト内の `BASELINE_HEIGHT` 変数で変更可能です。
 
 ## 使用例
 
-**例1：基本的な使い方**
+**例1：基本的な使い方（デフォルトスケール）**
 
 ```bash
-./teximg.sh 'a^2 + b^2 = c^2' 100
+./teximg.sh 'a^2 + b^2 = c^2'
 ```
-`output.png` という名前で、高さ48px相当の画像が生成されます。
+`output.png` という名前で、デフォルトのスケール `100%`（高さ480px相当）の画像が生成されます。
 
-**例2：出力ファイルを指定**
+**例2：スケールを指定して生成**
 
 ```bash
-./teximg.sh -o pythagoras.png 'a^2 + b^2 = c^2' 100
+./teximg.sh --scale 25 '\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}'
 ```
-`pythagoras.png` という名前で画像が生成されます。
+高さが 480px * 0.25 = 120px 相当の画像が生成されます。
 
-**例3：数式を大きめに生成**
+**例3：線の太さを指定して生成**
 
 ```bash
-./teximg.sh --output gaussian.png '\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}' 250
+./teximg.sh --thickness 1 '\sqrt{x^2+y^2}'
 ```
-`gaussian.png` という名前で、高さが 48px * 2.5 = 120px 相当の画像が生成されます。
-
-**例4：線を太くして生成**
-
-```bash
-./teximg.sh -t 0.75 --output thick.png '\sum_{k=1}^\infty \frac{1}{k^2} = \frac{\pi^2}{6}' 200
-```
-`--thickness` オプション（短縮形は `-t`）で、線の太さをピクセル単位の半径で指定して太らせることができます。
-
+デフォルトの出力ファイル名 (`output.png`) とスケール (`100%`) で、線の太さが1増した画像が生成されます。

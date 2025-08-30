@@ -6,18 +6,18 @@ set -e
 # --- Help Function ---
 show_help() {
 cat << EOF
-Usage: $0 [options] <formula> <scale>
+Usage: $0 [options] <formula>
 
 Generates a transparent PNG image from a LaTeX formula.
 
 Options:
   -o, --output FILE   Set the output file name (default: output.png)
   -t, --thickness VAL Set thickness for dilating the font (e.g., 1.0). Default: 0.
+  -s, --scale VAL     Set the scaling percentage (default: 100).
   -h, --help          Display this help and exit
 
 Arguments:
   formula             The LaTeX formula to render (e.g., '\frac{a}{b}')
-  scale               The scaling percentage (e.g., 100)
 EOF
 }
 
@@ -31,8 +31,9 @@ command -v getopt >/dev/null 2>&1 || { echo >&2 "Error: getopt is not installed.
 # --- Argument Parsing ---
 OUTPUT_FILE="output.png"
 THICKNESS=0
+SCALE=100
 
-PARSED_OPTIONS=$(getopt -n "$0" -o o:t:h --longoptions output:,thickness:,help -- "$@")
+PARSED_OPTIONS=$(getopt -n "$0" -o o:t:s:h --longoptions output:,thickness:,scale:,help -- "$@")
 if [ $? -ne 0 ]; then
     show_help >&2
     exit 1
@@ -53,6 +54,10 @@ while true; do
             THICKNESS="$2"
             shift 2
             ;;
+        -s|--scale)
+            SCALE="$2"
+            shift 2
+            ;;
         --)
             shift
             break
@@ -65,13 +70,12 @@ while true; do
 done
 
 # Handle positional arguments
-if [ "$#" -ne 2 ]; then
+if [ "$#" -ne 1 ]; then
     echo "Error: Invalid number of arguments. See --help for usage." >&2
     exit 1
 fi
 
 FORMULA=$1
-SCALE=$2
 
 
 # --- Constants ---
@@ -93,15 +97,15 @@ PDF_FILE="$BASE_NAME.pdf"
 # --- LaTeX Generation ---
 cat > "$TEX_FILE" << EOF
 \documentclass{ltjarticle}
-\usepackage[active,tightpage]{preview} % Use preview package for cropping
+\usepackage[active,tightpage]{preview}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{xcolor}
 \begin{document}
-\begin{preview} % Start the preview environment
+\begin{preview}
 {\color{black} \[$FORMULA\]}
-\end{preview} % End the preview environment
+\end{preview}
 \end{document}
 EOF
 
