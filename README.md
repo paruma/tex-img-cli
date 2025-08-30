@@ -71,6 +71,7 @@ Generates a transparent PNG image from a LaTeX formula.
 
 Options:
   -o, --output FILE   Set the output file name (default: output.png)
+  -t, --thickness VAL Set thickness for dilating the font (e.g., 1.0). Default: 0.
   -h, --help          Display this help and exit
 
 Arguments:
@@ -100,4 +101,11 @@ Arguments:
 ./teximg.sh --output gaussian.png '\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}' 250
 ```
 `gaussian.png` という名前で、高さが 48px * 2.5 = 120px 相当の画像が生成されます。
+
+**例4：線を太くして生成**
+
+```bash
+./teximg.sh -t 0.75 --output thick.png '\sum_{k=1}^\infty \frac{1}{k^2} = \frac{\pi^2}{6}' 200
+```
+`--thickness` オプション（短縮形は `-t`）で、線の太さをピクセル単位の半径で指定して太らせることができます。
 

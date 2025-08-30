@@ -12,10 +12,11 @@ Generates a transparent PNG image from a LaTeX formula.
 
 Options:
   -o, --output FILE   Set the output file name (default: output.png)
+  -t, --thickness VAL Set thickness for dilating the font (e.g., 1.0). Default: 0.
   -h, --help          Display this help and exit
 
 Arguments:
-  formula             The LaTeX formula to render (e.g., "\\frac{a}{b}")
+  formula             The LaTeX formula to render (e.g., '\frac{a}{b}')
   scale               The scaling percentage (e.g., 100)
 EOF
 }
@@ -29,35 +30,37 @@ command -v getopt >/dev/null 2>&1 || { echo >&2 "Error: getopt is not installed.
 
 # --- Argument Parsing ---
 OUTPUT_FILE="output.png"
+THICKNESS=0
 
-# Note: The -o option requires a value, so it's followed by a colon.
-# The -h option does not, so it is not.
-PARSED_OPTIONS=$(getopt -n "$0" -o o:h --longoptions output:,help -- "$@")
+PARSED_OPTIONS=$(getopt -n "$0" -o o:t:h --longoptions output:,thickness:,help -- "$@")
 if [ $? -ne 0 ]; then
     show_help >&2
     exit 1
 fi
-# Set the positional parameters ($1, $2, etc.) to the parsed options
 eval set -- "$PARSED_OPTIONS"
 
 while true; do
     case "$1" in
-        -h|--help) 
+        -h|--help)
             show_help
             exit 0
-            ;; 
+            ;;
         -o|--output)
             OUTPUT_FILE="$2"
             shift 2
-            ;; 
-        --) 
+            ;;
+        -t|--thickness)
+            THICKNESS="$2"
+            shift 2
+            ;;
+        --)
             shift
             break
-            ;; 
+            ;;
         *)
             echo "Internal error!" >&2
             exit 1
-            ;; 
+            ;;
     esac
 done
 
@@ -76,15 +79,11 @@ BASELINE_HEIGHT=48 # px, this is our 100% reference height
 DENSITY=600        # DPI for high-quality rendering
 
 # --- Calculation ---
-# Use bc for floating point arithmetic
 TARGET_HEIGHT=$(bc <<< "$BASELINE_HEIGHT * $SCALE / 100")
-# Round to the nearest integer
 TARGET_HEIGHT=$(printf "%.0f" "$TARGET_HEIGHT")
 
 # --- File Handling ---
-# Create a unique temporary directory to work in
 TMP_DIR=$(mktemp -d)
-# Ensure the temporary directory is cleaned up on exit
 trap 'rm -rf -- "$TMP_DIR"' EXIT
 
 BASE_NAME="$TMP_DIR/tex"
@@ -92,7 +91,6 @@ TEX_FILE="$BASE_NAME.tex"
 PDF_FILE="$BASE_NAME.pdf"
 
 # --- LaTeX Generation ---
-# Create the .tex file using a heredoc
 cat > "$TEX_FILE" << EOF
 \documentclass[preview, border=2pt]{standalone}
 \usepackage{amsmath}
@@ -109,7 +107,21 @@ echo "Generating LaTeX PDF..."
 pdflatex -interaction=nonstopmode -output-directory="$TMP_DIR" "$TEX_FILE" >/dev/null 2>&1
 
 echo "Converting PDF to PNG..."
-convert -density "$DENSITY" "$PDF_FILE" -resize "x$TARGET_HEIGHT" -transparent white -trim "$OUTPUT_FILE"
+
+# Build argument list for convert command
+CONVERT_ARGS=()
+CONVERT_ARGS+=(-density "$DENSITY" "$PDF_FILE")
+CONVERT_ARGS+=(-resize "x$TARGET_HEIGHT")
+
+# Add morphology option only if thickness is greater than 0
+if (( $(echo "$THICKNESS > 0" | bc -l) )); then
+    CONVERT_ARGS+=(-channel A -morphology Dilate "Disk:$THICKNESS" +channel)
+fi
+
+CONVERT_ARGS+=(-transparent white -trim)
+CONVERT_ARGS+=("$OUTPUT_FILE")
+
+convert "${CONVERT_ARGS[@]}"
 
 echo ""
 echo "Success! Image saved as $OUTPUT_FILE"
